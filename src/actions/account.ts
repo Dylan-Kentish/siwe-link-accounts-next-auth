@@ -2,12 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { authOptions } from '@/app/api/auth/options';
+import { prisma } from '@/server/db';
 
 export async function unlinkAccount(provider: string, providerAccountId: string) {
-  authOptions.adapter?.unlinkAccount?.({
-    provider,
-    providerAccountId,
+  await prisma.account.delete({
+    where: {
+      provider_providerAccountId: {
+        provider,
+        providerAccountId,
+      },
+    },
   });
 
   revalidatePath('/link-accounts');
