@@ -3,14 +3,12 @@ import { Adapter } from 'next-auth/adapters';
 
 import { prisma } from '@/server/db';
 
+// Although the Adapter documentation says that all sign-in flows require almost
+// all methods to be implemented, this is not true for the CredentialsProvider.
+// The Adapter is not used for the CredentialsProvider, and therefore only used
+// by oauth providers, when linking accounts.
 export function SIWEAdapter(): Adapter {
   return {
-    // @ts-ignore next-auth/adapters AdapterUser email, emailVerified
-    createUser(user) {
-      return prisma.user.create({
-        data: user,
-      });
-    },
     // @ts-ignore next-auth/adapters AdapterUser email, emailVerified
     async getUser(userId) {
       const userData = await prisma.user.findUnique({
@@ -19,7 +17,6 @@ export function SIWEAdapter(): Adapter {
         },
         select: {
           id: true,
-          address: true,
           role: true,
         },
       });
@@ -38,7 +35,6 @@ export function SIWEAdapter(): Adapter {
           user: {
             select: {
               id: true,
-              address: true,
               role: true,
             },
           },
@@ -48,29 +44,6 @@ export function SIWEAdapter(): Adapter {
       if (!accountData) return null;
 
       return accountData.user;
-    },
-    // @ts-ignore next-auth/adapters AdapterUser email, emailVerified
-    async updateUser({ id, ...data }) {
-      const userData = await prisma.user.update({
-        where: {
-          id,
-        },
-        data,
-        select: {
-          id: true,
-          address: true,
-          role: true,
-        },
-      });
-
-      return userData;
-    },
-    async deleteUser(userId) {
-      await prisma.user.delete({
-        where: {
-          id: userId,
-        },
-      });
     },
     async linkAccount({ userId, provider, providerAccountId }) {
       await prisma.user.update({
@@ -86,41 +59,6 @@ export function SIWEAdapter(): Adapter {
           },
         },
       });
-    },
-    async unlinkAccount(provider_providerAccountId) {
-      await prisma.account.delete({
-        where: {
-          provider_providerAccountId,
-        },
-      });
-    },
-    // @ts-expect-error
-    createVerificationToken() {
-      // Won't be called because we're not using email sign in
-    },
-    // @ts-expect-error
-    useVerificationToken() {
-      // Won't be called because we're not using email sign in
-    },
-    // @ts-expect-error
-    async getUserByEmail() {
-      // Won't be called because we're using JWT
-    },
-    // @ts-expect-error
-    getSessionAndUser() {
-      // Won't be called because we're using JWT
-    },
-    // @ts-expect-error
-    createSession() {
-      // Won't be called because we're using JWT
-    },
-    // @ts-expect-error
-    updateSession() {
-      // Won't be called because we're using JWT
-    },
-    // @ts-expect-error
-    deleteSession() {
-      // Won't be called because we're using JWT
     },
   };
 }

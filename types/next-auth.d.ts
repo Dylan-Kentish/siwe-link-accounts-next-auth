@@ -6,26 +6,25 @@ type Role = 'ADMIN' | 'USER';
 declare module 'next-auth/adapters' {
   interface AdapterUser {
     id: string;
-    address: string;
   }
 }
 
 declare module 'next-auth' {
   interface User {
     id: string;
-    address: string;
     role: Role;
   }
 
   interface Session {
     user: User;
+    iat: number;
+    exp: number;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    address: string;
     role: Role;
     iat: number;
     exp: number;

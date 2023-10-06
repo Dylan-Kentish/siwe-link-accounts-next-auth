@@ -22,11 +22,8 @@ model Account {
 
 model User {
   id       String    @id @default(cuid())
-  address  String    @unique
   role     Role      @default(USER)
   accounts Account[]
-
-  @@map("users")
 }
 
 enum Role {

@@ -45,22 +45,21 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (result.success) {
-            const dbUser = await prisma.user.upsert({
+            const user = await prisma.user.upsert({
               where: {
-                address: siwe.address,
+                id: siwe.address,
               },
               update: {},
               create: {
-                address: siwe.address,
+                id: siwe.address,
               },
               select: {
                 id: true,
-                address: true,
                 role: true,
               },
             });
 
-            return dbUser;
+            return user;
           } else {
             return null;
           }
@@ -81,18 +80,22 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         // Persist the data to the token right after authentication
         token.id = user.id;
-        token.address = user.address;
         token.role = user.role;
       }
 
       return token;
     },
     session({ session, token }) {
-      session.user = token;
+      session.user.id = token.id;
+      session.user.role = token.role;
+      session.iat = token.iat;
+      session.exp = token.exp;
       return session;
     },
   },
   events: {
+    // after an account has been linked to a user
+    // store the name and image from the provider
     linkAccount: async ({ account, profile }) => {
       await prisma.account.update({
         where: {
