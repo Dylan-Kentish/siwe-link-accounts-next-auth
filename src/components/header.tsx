@@ -16,6 +16,9 @@ export const Header: React.FC = () => {
         <Button variant="link" size="sm" asChild>
           <Link href="/admin">Admin</Link>
         </Button>
+        <Button variant="link" size="sm" asChild>
+          <Link href="/link-accounts">Link Accounts</Link>
+        </Button>
       </div>
       <div className="flex justify-end">
         <AccountButton />

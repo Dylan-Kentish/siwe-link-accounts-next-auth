@@ -15,6 +15,8 @@ const env = createEnv({
       process.env.VERCEL ? z.string().min(1) : z.string().url()
     ),
     VERIFIED_DOMAIN: z.string(),
+    TWITTER_CLIENT_ID: z.string(),
+    TWITTER_CLIENT_SECRET: z.string(),
   },
   client: {
     NEXT_PUBLIC_ALCHEMY_API_KEY: z.string(),
@@ -29,6 +31,8 @@ const env = createEnv({
     NEXT_PUBLIC_ALCHEMY_API_KEY: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
     NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID,
     NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
+    TWITTER_CLIENT_ID: process.env.TWITTER_CLIENT_ID,
+    TWITTER_CLIENT_SECRET: process.env.TWITTER_CLIENT_SECRET,
   },
   skipValidation:
     !!process.env.SKIP_ENV_VALIDATION && !['0', 'false'].includes(process.env.SKIP_ENV_VALIDATION),

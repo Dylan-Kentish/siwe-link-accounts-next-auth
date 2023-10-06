@@ -6,6 +6,12 @@
 const config = {
   reactStrictMode: true,
   swcMinify: true,
+  experimental: {
+    serverActions: true,
+    logging: {
+      level: 'verbose',
+    },
+  },
   i18n: {
     locales: ['en'],
     defaultLocale: 'en',

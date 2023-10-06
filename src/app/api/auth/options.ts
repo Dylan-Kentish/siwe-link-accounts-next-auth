@@ -2,19 +2,24 @@ import 'server-only';
 
 import { type NextAuthOptions, getServerSession as getServerSessionInternal } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import TwitterProvider from 'next-auth/providers/twitter';
 import { getCsrfToken } from 'next-auth/react';
 import { SiweMessage } from 'siwe';
 
 import { env } from '@/env.mjs';
 import { prisma } from '@/server/db';
 
+import { SIWEAdapter } from './adapter';
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
+  adapter: SIWEAdapter(),
   providers: [
     CredentialsProvider({
-      name: 'Ethereum',
+      id: 'siwe',
+      name: 'siwe',
       credentials: {
         message: {
           label: 'Message',
@@ -42,24 +47,20 @@ export const authOptions: NextAuthOptions = {
           if (result.success) {
             const dbUser = await prisma.user.upsert({
               where: {
-                id: siwe.address,
+                address: siwe.address,
               },
               update: {},
               create: {
-                id: siwe.address,
+                address: siwe.address,
               },
               select: {
                 id: true,
+                address: true,
                 role: true,
               },
             });
 
-            return {
-              id: siwe.address,
-              role: dbUser.role,
-              iat: Math.floor(Date.now() / 1000),
-              exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
-            };
+            return dbUser;
           } else {
             return null;
           }
@@ -69,32 +70,42 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    TwitterProvider({
+      clientId: env.TWITTER_CLIENT_ID,
+      clientSecret: env.TWITTER_CLIENT_SECRET,
+      version: '2.0',
+    }),
   ],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        // Persist the data to the token right after authentication
+        token.id = user.id;
+        token.address = user.address;
+        token.role = user.role;
+      }
+
+      return token;
+    },
     session({ session, token }) {
       session.user = token;
       return session;
     },
-    async jwt({ token, user }) {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (user) {
-        // Persist the id and role to the token right after authentication
-        token.id = user.id;
-        token.role = user.role;
-      } else {
-        const dbUser = await prisma.user.findUniqueOrThrow({
-          where: {
-            id: token.id,
+  },
+  events: {
+    linkAccount: async ({ account, profile }) => {
+      await prisma.account.update({
+        where: {
+          provider_providerAccountId: {
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
           },
-          select: {
-            role: true,
-          },
-        });
-
-        token.role = dbUser.role;
-      }
-
-      return token;
+        },
+        data: {
+          name: profile.name,
+          image: profile.image,
+        },
+      });
     },
   },
   pages: {
