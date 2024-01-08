@@ -1,18 +1,23 @@
-import React, { Suspense } from 'react';
+'use client';
 
-import { getServerSession } from '@/app/api/auth/options';
+import React from 'react';
 
-import { LoginButton } from './web3/login-button';
-import { LogoutButton } from './web3/logout-button';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { useSession } from 'next-auth/react';
 
-export const AccountButton: React.FC = async () => {
-  const session = await getServerSession();
+import { Button } from './ui/button';
 
-  return session ? (
-    <LogoutButton />
-  ) : (
-    <Suspense>
-      <LoginButton />
-    </Suspense>
+export const AccountButton: React.FC = () => {
+  const { open } = useWeb3Modal();
+  const { status } = useSession();
+
+  function handleClick() {
+    open().catch(console.error);
+  }
+
+  return (
+    <Button size="lg" onClick={handleClick}>
+      {status === 'authenticated' ? 'Connected' : 'Connect'}
+    </Button>
   );
 };
